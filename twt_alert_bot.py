@@ -1,6 +1,5 @@
 import os
-import smtplib
-from email.message import EmailMessage
+import requests  # Add this import
 from flask import Flask, render_template, request, redirect
 import tweepy
 from dotenv import load_dotenv
@@ -13,7 +12,7 @@ app.secret_key = os.getenv('SECRET_KEY')
 # Initialize Twitter client
 client = tweepy.Client(bearer_token=os.getenv('BEARER_TOKEN'))
 
-# Store keywords in memory (consider using database in production)
+# Store keywords in memory
 keywords = set()
 
 class AlertStream(tweepy.StreamingClient):
@@ -22,15 +21,29 @@ class AlertStream(tweepy.StreamingClient):
             self.send_alert(tweet)
     
     def send_alert(self, tweet):
-        msg = EmailMessage()
-        msg.set_content(f"New tweet matching your keywords:\n\n{tweet.text}\n\nhttps://twitter.com/user/status/{tweet.id}")
-        msg['Subject'] = "Twitter Keyword Alert!"
-        msg['From'] = os.getenv('EMAIL_USER')
-        msg['To'] = os.getenv('EMAIL_USER')
+        # Telegram bot configuration
+        bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+        chat_id = os.getenv('TELEGRAM_CHAT_ID')
         
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASSWORD'))
-            smtp.send_message(msg)
+        message = (
+            f"🚨 New Twitter Alert!\n\n"
+            f"📝 Content: {tweet.text}\n\n"
+            f"🔗 Link: https://twitter.com/user/status/{tweet.id}"
+        )
+        
+        # Send message to Telegram
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            'chat_id': chat_id,
+            'text': message,
+            'parse_mode': 'HTML'
+        }
+        
+        try:
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f"Telegram API Error: {e}")
 
 # Initialize stream
 stream = AlertStream(os.getenv('BEARER_TOKEN'))
