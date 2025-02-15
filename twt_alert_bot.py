@@ -67,10 +67,14 @@ def remove_keyword(keyword):
     return redirect('/')
 
 def update_stream():
-    stream.rules.delete(stream.get_rules().data)  # Clear existing rules
+    
+    existing_rules = stream.get_rules()
+    if existing_rules and existing_rules.data:
+        rule_ids = [rule.id for rule in existing_rules.data]
+        stream.delete_rules(rule_ids)
+    
     if keywords:
         stream.add_rules(tweepy.StreamRule(" OR ".join(keywords)))
-
 if __name__ == '__main__':
     update_stream()
     stream.filter()
