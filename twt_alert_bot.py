@@ -67,15 +67,20 @@ def remove_keyword(keyword):
     return redirect('/')
 
 def update_stream():
-    
+    # Clear existing rules first
     existing_rules = stream.get_rules()
+    
     if existing_rules and existing_rules.data:
         rule_ids = [rule.id for rule in existing_rules.data]
         stream.delete_rules(rule_ids)
-    
+
+    # Add new rules if keywords exist
     if keywords:
-        stream.add_rules(tweepy.StreamRule(" OR ".join(keywords)))
+        stream.add_rules([tweepy.StreamRule(" OR ".join(keywords))])
+
 if __name__ == '__main__':
     update_stream()
-    stream.filter()
+    # Run stream and Flask app concurrently
+    from threading import Thread
+    Thread(target=stream.filter).start()
     app.run(debug=False)
