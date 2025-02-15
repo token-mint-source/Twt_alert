@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter Keyword Alert</title>
+</head>
+<body>
+    <h1>Tracked Keywords</h1>
+    <form action="/add" method="POST">
+        <input type="text" name="keyword" placeholder="Enter keyword" required>
+        <button type="submit">Add Keyword</button>
+    </form>
+    
+    <ul>
+        {% for keyword in keywords %}
+        <li>
+            {{ keyword }}
+            <a href="/remove/{{ keyword }}">(remove)</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
