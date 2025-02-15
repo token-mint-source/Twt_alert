@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+.env/
+venv/
+ENV/
+env/
+venv.bak/
+env.bak/
+
+# Environment variables
+.env
+*.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Flask
+instance/
+.webassets-cache
+debug.log
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+tests/.pytest_cache/
+
+# Local development
+*.sqlite
+*.db
+*.sql
+
+# Logs and databases
+*.log
+*.pot
+
+# Temporary files
+tmp/
+temp/
+
+# Custom
+secrets.ini
+config.ini
+
