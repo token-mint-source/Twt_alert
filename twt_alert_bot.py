@@ -48,9 +48,14 @@ class AlertStream(tweepy.StreamingClient):
 # Initialize stream
 stream = AlertStream(os.getenv('BEARER_TOKEN'))
 
+# Start the stream when the app is loaded
+update_stream()
+Thread(target=stream.filter).start()
+
 @app.route('/')
 def index():
     return render_template('index.html', keywords=keywords)
+    
 
 @app.route('/add', methods=['POST'])
 def add_keyword():
@@ -79,8 +84,9 @@ def update_stream():
         stream.add_rules([tweepy.StreamRule(" OR ".join(keywords))])
 
 if __name__ == '__main__':
-    update_stream()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
     # Run stream and Flask app concurrently
     from threading import Thread
     Thread(target=stream.filter).start()
     app.run(debug=False)
+
