@@ -1,8 +1,9 @@
 import os
-import requests  # Add this import
+import requests
 from flask import Flask, render_template, request, redirect
 import tweepy
 from dotenv import load_dotenv
+from threading import Thread
 
 load_dotenv()
 
@@ -48,14 +49,23 @@ class AlertStream(tweepy.StreamingClient):
 # Initialize stream
 stream = AlertStream(os.getenv('BEARER_TOKEN'))
 
-# Start the stream when the app is loaded
-update_stream()
-Thread(target=stream.filter).start()
+def update_stream():
+    """Update Twitter stream rules based on current keywords"""
+    # Clear existing rules first
+    existing_rules = stream.get_rules()
+    
+    if existing_rules and existing_rules.data:
+        rule_ids = [rule.id for rule in existing_rules.data]
+        stream.delete_rules(rule_ids)
 
+    # Add new rules if keywords exist
+    if keywords:
+        stream.add_rules([tweepy.StreamRule(" OR ".join(keywords))])
+
+# Routes
 @app.route('/')
 def index():
     return render_template('index.html', keywords=keywords)
-    
 
 @app.route('/add', methods=['POST'])
 def add_keyword():
@@ -71,22 +81,12 @@ def remove_keyword(keyword):
     update_stream()
     return redirect('/')
 
-def update_stream():
-    # Clear existing rules first
-    existing_rules = stream.get_rules()
-    
-    if existing_rules and existing_rules.data:
-        rule_ids = [rule.id for rule in existing_rules.data]
-        stream.delete_rules(rule_ids)
-
-    # Add new rules if keywords exist
-    if keywords:
-        stream.add_rules([tweepy.StreamRule(" OR ".join(keywords))])
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-    # Run stream and Flask app concurrently
-    from threading import Thread
+    # Initial setup
+    update_stream()
+    
+    # Start Twitter stream in a separate thread
     Thread(target=stream.filter).start()
-    app.run(debug=False)
-
+    
+    # Run Flask app
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
